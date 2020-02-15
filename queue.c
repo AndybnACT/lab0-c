@@ -1,9 +1,10 @@
+#include "queue.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "harness.h"
-#include "queue.h"
 
 /*
  * Create empty queue.
@@ -13,7 +14,13 @@ queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
     /* TODO: What if malloc returned NULL? */
+    if (!q) {
+        perror("malloc");
+        return NULL;
+    }
     q->head = NULL;
+    q->tail = NULL;
+    q->nr = 0;
     return q;
 }
 
@@ -22,6 +29,21 @@ void q_free(queue_t *q)
 {
     /* TODO: How about freeing the list elements and the strings? */
     /* Free queue structure */
+    list_ele_t *ptr;
+    if (!q)
+        return;
+
+    ptr = q->head;
+    while (ptr) {
+        list_ele_t *self;
+        self = ptr;
+        ptr = ptr->next;
+        if (self->value) {
+            free(self->value);
+        }
+        free(self);
+    }
+
     free(q);
 }
 
@@ -36,11 +58,29 @@ bool q_insert_head(queue_t *q, char *s)
 {
     list_ele_t *newh;
     /* TODO: What should you do if the q is NULL? */
+    if (!q) {
+        return false;
+    }
+
     newh = malloc(sizeof(list_ele_t));
+    if (!newh) {
+        perror("malloc, cannot allocate space for new element");
+        return false;
+    }
     /* Don't forget to allocate space for the string and copy it */
     /* What if either call to malloc returns NULL? */
+    newh->value = strdup(s);
+    if (!newh->value) {
+        perror("strdup, cannot allocate space for value");
+        free(newh);
+        return false;
+    }
     newh->next = q->head;
     q->head = newh;
+    if (!q->tail) {
+        q->tail = newh;
+    }
+    q->nr++;
     return true;
 }
 
@@ -56,7 +96,35 @@ bool q_insert_tail(queue_t *q, char *s)
     /* TODO: You need to write the complete code for this function */
     /* Remember: It should operate in O(1) time */
     /* TODO: Remove the above comment when you are about to implement. */
-    return false;
+    list_ele_t *newh;
+    if (!q) {
+        return false;
+    }
+
+    newh = malloc(sizeof(list_ele_t));
+    if (!newh) {
+        perror("malloc, cannot allocate space for new element");
+        return false;
+    }
+
+    newh->value = strdup(s);
+    if (!newh->value) {
+        perror("strdup, cannot allocate space for value");
+        free(newh);
+        return false;
+    }
+    newh->next = NULL;
+
+    if (!q->tail) {
+        q->tail = newh;
+        q->head = newh;
+    } else {
+        q->tail->next = newh;
+        q->tail = newh;
+    }
+
+    q->nr++;
+    return true;
 }
 
 /*
@@ -71,7 +139,27 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
     /* TODO: You need to fix up this code. */
     /* TODO: Remove the above comment when you are about to implement. */
-    q->head = q->head->next;
+    list_ele_t *rm;
+    if (!q)
+        return false;
+    if (!q->head)
+        return false;
+
+    rm = q->head;
+    if (sp) {
+        memset(sp, 0, bufsize);
+        if (rm->value) {
+            strncpy(sp, rm->value, bufsize - 1);
+        }
+    }
+    free(rm->value);
+
+    q->head = rm->next;
+    q->nr--;
+    if (rm == q->tail)
+        q->tail = NULL;
+
+    free(rm);
     return true;
 }
 
@@ -84,7 +172,10 @@ int q_size(queue_t *q)
     /* TODO: You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
     /* TODO: Remove the above comment when you are about to implement. */
-    return 0;
+    if (!q || !q->head) {
+        return 0;
+    }
+    return q->nr;
 }
 
 /*
@@ -98,6 +189,26 @@ void q_reverse(queue_t *q)
 {
     /* TODO: You need to write the code for this function */
     /* TODO: Remove the above comment when you are about to implement. */
+    list_ele_t *cur;
+    list_ele_t *prev, *tmp;
+    if (!q)
+        return;
+    if (!q->head)
+        return;
+
+    cur = q->head;
+    prev = NULL;
+    while (cur->next) {
+        tmp = cur->next;
+        cur->next = prev;
+        prev = cur;
+        cur = tmp;
+    }
+    cur->next = prev;
+
+    q->tail = q->head;
+    q->head = cur;
+    return;
 }
 
 /*
@@ -109,4 +220,40 @@ void q_sort(queue_t *q)
 {
     /* TODO: You need to write the code for this function */
     /* TODO: Remove the above comment when you are about to implement. */
+    list_ele_t *head, *tail, *e;
+    if (!q)
+        return;
+    if (!q->head)
+        return;
+
+    head = q->head;
+    tail = q->head;
+
+    e = head->next;
+    head->next = NULL;
+
+    while (e) {
+        list_ele_t *insert = e;
+        list_ele_t **haystack = &head;
+        list_ele_t *tmp;
+
+        e = e->next;
+        insert->next = NULL;
+
+        while (*haystack) {
+            if (strcasecmp(insert->value, (*haystack)->value) <= 0)
+                break;
+            haystack = &((*haystack)->next);
+        }
+        if (!*haystack)
+            tail = insert;
+
+        tmp = *haystack;
+        *haystack = insert;
+        insert->next = tmp;
+    }
+
+    q->head = head;
+    q->tail = tail;
+    return;
 }
