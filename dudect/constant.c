@@ -10,16 +10,17 @@
 #include "queue.h"
 #include "random.h"
 
+#define NR_MEASURE 150
 /* Allow random number range from 0 to 65535 */
 const size_t chunk_size = 16;
 /* Number of measurements per test */
-const size_t number_measurements = 150;
+const size_t number_measurements = NR_MEASURE;
 const int drop_size = 20;
 /* Maintain a queue independent from the qtest since
  * we do not want the test to affect the original functionality
  */
 static queue_t *q = NULL;
-static char random_string[100][8];
+static char random_string[NR_MEASURE][8];
 static int random_string_iter = 0;
 enum { test_insert_tail, test_size };
 
