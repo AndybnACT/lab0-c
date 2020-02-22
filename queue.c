@@ -13,7 +13,6 @@
 queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
-    /* TODO: What if malloc returned NULL? */
     if (!q) {
         perror("malloc");
         return NULL;
@@ -27,7 +26,6 @@ queue_t *q_new()
 /* Free all storage used by queue */
 void q_free(queue_t *q)
 {
-    /* TODO: How about freeing the list elements and the strings? */
     /* Free queue structure */
     list_ele_t *ptr;
     if (!q)
@@ -69,6 +67,7 @@ bool q_insert_head(queue_t *q, char *s)
     }
     /* Don't forget to allocate space for the string and copy it */
     /* What if either call to malloc returns NULL? */
+    // printf("%lx\n", *((unsigned long*)s));
     newh->value = strdup(s);
     if (!newh->value) {
         perror("strdup, cannot allocate space for value");
