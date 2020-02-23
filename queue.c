@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "harness.h"
+#include "strnatcmp.h"
 
 /*
  * Create empty queue.
@@ -228,7 +229,7 @@ void q_sort(queue_t *q)
         insert->next = NULL;
 
         while (*haystack) {
-            if (strcasecmp(insert->value, (*haystack)->value) <= 0)
+            if (strnatcmp(insert->value, (*haystack)->value) <= 0)
                 break;
             haystack = &((*haystack)->next);
         }
