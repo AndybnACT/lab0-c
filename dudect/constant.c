@@ -32,7 +32,7 @@ void init_dut(void)
 
 char *get_random_string(void)
 {
-    random_string_iter = (random_string_iter + 1) % number_measurements;
+    random_string_iter = (random_string_iter + 1) % NR_MEASURE;
     return random_string[random_string_iter];
 }
 
@@ -45,7 +45,7 @@ void prepare_inputs(uint8_t *input_data, uint8_t *classes)
             *(uint16_t *) (input_data + i * chunk_size) = 0x00;
     }
 
-    for (size_t i = 0; i < 100; ++i) {
+    for (size_t i = 0; i < NR_MEASURE; ++i) {
         /* Generate random string */
         randombytes((uint8_t *) random_string[i], 7);
         random_string[i][7] = 0;
