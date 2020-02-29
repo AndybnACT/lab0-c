@@ -213,6 +213,7 @@ list_ele_t *merge_sort(queue_t *q, list_ele_t *start)
     list_ele_t *left = start;
     list_ele_t *right;
     list_ele_t *slow, *fast;
+    list_ele_t *merge;
 
     slow = start;
     fast = slow->next;
@@ -226,7 +227,7 @@ list_ele_t *merge_sort(queue_t *q, list_ele_t *start)
     left = merge_sort(q, left);
     right = merge_sort(q, right);
 
-    for (list_ele_t *merge = NULL; left || right;) {
+    for (merge = NULL; left || right;) {
         if (!right || (left && strnatcmp(left->value, right->value) <= 0)) {
             if (!merge) {
                 start = merge = left;
@@ -234,7 +235,6 @@ list_ele_t *merge_sort(queue_t *q, list_ele_t *start)
                 merge->next = left;
                 merge = merge->next;
             }
-            q->tail = right;
             left = left->next;
         } else {
             if (!merge) {
@@ -243,10 +243,10 @@ list_ele_t *merge_sort(queue_t *q, list_ele_t *start)
                 merge->next = right;
                 merge = merge->next;
             }
-            q->tail = left;
             right = right->next;
         }
     }
+    q->tail = merge;
     return start;
 }
 
