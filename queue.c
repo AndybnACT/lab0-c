@@ -206,42 +206,55 @@ void q_reverse(queue_t *q)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
+list_ele_t *merge_sort(queue_t *q, list_ele_t *start)
+{
+    if (!start || !start->next)
+        return start;
+    list_ele_t *left = start;
+    list_ele_t *right;
+    list_ele_t *slow, *fast;
+
+    slow = start;
+    fast = slow->next;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    right = slow->next;
+    slow->next = NULL;
+
+    left = merge_sort(q, left);
+    right = merge_sort(q, right);
+
+    for (list_ele_t *merge = NULL; left || right;) {
+        if (!right || (left && strnatcmp(left->value, right->value) <= 0)) {
+            if (!merge) {
+                start = merge = left;
+            } else {
+                merge->next = left;
+                merge = merge->next;
+            }
+            q->tail = right;
+            left = left->next;
+        } else {
+            if (!merge) {
+                start = merge = right;
+            } else {
+                merge->next = right;
+                merge = merge->next;
+            }
+            q->tail = left;
+            right = right->next;
+        }
+    }
+    return start;
+}
+
 void q_sort(queue_t *q)
 {
-    list_ele_t *head, *tail, *e;
-    if (!q)
-        return;
-    if (!q->head)
+    if (!q || !q->head)
         return;
 
-    head = q->head;
-    tail = q->head;
-
-    e = head->next;
-    head->next = NULL;
-
-    while (e) {
-        list_ele_t *insert = e;
-        list_ele_t **haystack = &head;
-        list_ele_t *tmp;
-
-        e = e->next;
-        insert->next = NULL;
-
-        while (*haystack) {
-            if (strnatcmp(insert->value, (*haystack)->value) <= 0)
-                break;
-            haystack = &((*haystack)->next);
-        }
-        if (!*haystack)
-            tail = insert;
-
-        tmp = *haystack;
-        *haystack = insert;
-        insert->next = tmp;
-    }
-
-    q->head = head;
-    q->tail = tail;
+    q->head = merge_sort(q, q->head);
     return;
 }
